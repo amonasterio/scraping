@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import logging
 from onpage import Onpage  
+import time 
 
 logging.basicConfig(filename='test.log')
 st.set_page_config(
@@ -34,13 +35,21 @@ if len(addresses)>0:
     total_count=0
     bar = st.progress(0.0)
     longitud=len(lista)
-    for row in lista:
+    for url in lista:
         total_count+=1
         percent_complete=total_count/longitud
         bar.progress(percent_complete)
-        op=Onpage(row)
-        df=op.toDataframe()
-        df_final=pd.concat([df_final,df])
+        try:
+            logging.info(str(total_count)+": Procesando: "+url)
+            op=Onpage(url)
+            op.printOnpage()
+            df=op.toDataframe()
+            df_final=pd.concat([df_final,df])
+        except Exception as e:
+            logging.error(str(total_count)+": Error procesando URL: "+url) 
+            if e is not None:
+                st.warning(str(e)+" - "+url)  
+        time.sleep(0.2)
     st.write(df_final)
     st.download_button(
         label="Descargar como CSV",

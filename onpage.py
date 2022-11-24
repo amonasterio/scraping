@@ -27,6 +27,7 @@ class Heading:
 class Onpage:
     def __init__(self,url):
         self.url=url
+        self.responseUrl=''#por si hay redirección
         self.title=''
         self.headings=[]
         self.status=0
@@ -50,7 +51,6 @@ class Onpage:
 
     #Recuepera los valores onpage
     def getOnPage(self,url):
-        try:
             req = Request(
                 url, 
                 data=None, 
@@ -58,14 +58,15 @@ class Onpage:
                     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
                 }
             )
-            open=urlopen(req)
-            self.status=open.code
-            if open.code==200:
-                content_type= open.info().get_content_type()
+            response=urlopen(req)
+            self.status=response.code
+            if response.code==200:
+                content_type= response.info().get_content_type()
                 self.conten_type=content_type
+                self.responseUrl=response.geturl()
                 #Si es html podemos obtener los datos onpage
                 if content_type=="text/html":  
-                    soup = BeautifulSoup(open,"html.parser")
+                    soup = BeautifulSoup(response,"html.parser")
                     title = soup.find('title').get_text().strip()
                     self.title=title
                     headings = soup.find_all(re.compile('^h[1-6]'))
@@ -77,19 +78,17 @@ class Onpage:
                 else:
                     logging.info("No es una página html")
             else:
-                logging.info("Código de estado: "+open.code)
-        except IndexError as e:
-            logging.error(e.args[0])
-        except UnboundLocalError as e:
-            logging.error(e.args[0])
-        except Exception as e:
-            logging.error(e.args[0])
+                logging.info("Código de estado: "+response.code)
+        
     
     #Convertimos a DataFrame
     def toDataframe(self):
         resultados=[] 
         df=None
         if self.hayDatos():
+            #Añadimos la URL de respuesta por si hay redirección
+            resultado={'url':self.url,'tag':'responseUrl','text':self.responseUrl}
+            resultados.append(resultado)
             #añadimos title
             resultado={'url':self.url,'tag':'title','text':self.title}
             resultados.append(resultado)
