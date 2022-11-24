@@ -41,7 +41,6 @@ if len(addresses)>0:
         for url in lista:
             total_count+=1
             percent_complete=total_count/longitud
-            bar.progress(percent_complete)
             try:
                 logging.info(str(total_count)+": Procesando: "+url)
                 op=Onpage(url)
@@ -50,7 +49,8 @@ if len(addresses)>0:
             except Exception as e:
                 logging.error(str(total_count)+": Error procesando URL: "+url) 
                 if e is not None:
-                    st.warning(str(e)+" - "+url)  
+                    st.warning(str(e)+" - "+url) 
+            bar.progress(percent_complete) 
             time.sleep(0.2)
         st.write(df_final)
         st.download_button(
