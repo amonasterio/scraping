@@ -42,7 +42,6 @@ if len(addresses)>0:
         try:
             logging.info(str(total_count)+": Procesando: "+url)
             op=Onpage(url)
-            op.printOnpage()
             df=op.toDataframe()
             df_final=pd.concat([df_final,df])
         except Exception as e:
